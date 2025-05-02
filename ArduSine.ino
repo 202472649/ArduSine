@@ -5,6 +5,10 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+// ########################################################## //
+// ## J'UTILISE UN ESP8266, DONC LES PINS SONT DIFFÉRENTES ## //
+// ########################################################## //
+
 const char* ssid = "NOAHLAPTOP";      //WIFI NAME
 const char* password = "61!3Vf05B3";  //WIFI PASSWORD
 
@@ -19,71 +23,104 @@ const char* password = "61!3Vf05B3";  //WIFI PASSWORD
 // On ESP8266:              D2(SDA), D1(SCL)
 #define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C  ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); //Define the display
 
-#define GREEN_LED 12
-#define BLUE_LED 14
-#define RED_LED 13
+#define GREEN_LED 12 //Pin D6
+#define BLUE_LED 14 //Pin D5
+#define RED_LED 13 //Pin D7
 
-int testValue = 69;
-float amplitude = 1;
-float largeur = 1;
-float offsetX = 0;
-float offsetY = 0;
+#define selectorPin ADC0 //Pin A0 : Potentiometer
+#define leftButton 3 //Pin RX
+#define rightButton 1 //Pin TX
 
-AsyncWebServer server(80);
+//Define the function mode here
+char functionMode = "sin" //Options : sin, cos, tan, abs, log, exp, aff, quad, para
+
+//Define the parameters for all functions
+float a, b, h, k = 0;
+
+AsyncWebServer server(80); //Configure web server on port 80 (HTTP)
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(GREEN_LED, OUTPUT);
-  pinMode(BLUE_LED, OUTPUT);
-  pinMode(RED_LED, OUTPUT);
+  Serial.begin(9600); //Initialize Serial Monitor with baud 9600
+  pinMode(GREEN_LED, OUTPUT); //Define LED as OUTPUT
+  pinMode(BLUE_LED, OUTPUT); //Define LED as OUTPUT
+  pinMode(RED_LED, OUTPUT); //Define LED as OUTPUT
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("OLED SSD1306 allocation failed"));
+  //Warn in the Serial if the OLED Display failed to start
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) { //If the display not initialized
+    Serial.println(F("OLED SSD1306 allocation failed")); //Print text to Serial Monitor
   }
-  display.clearDisplay();
-  display.display();
-  display.setTextColor(WHITE);
+
+  // Startup display configuration
+  displayClear(); //Clear the display
+  displayShow(); //Prevent error on startup. Make sure nothing is on screen
+  displayColor("WHITE"); //Set the diplay color as WHITE
 
   // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi..."); 
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.setTextSize(2);
-    display.println("Connectingto WiFi...");
-    display.setTextSize(1);
-    display.println();
-    display.print("SSID : ");
-    display.println(ssid);
-    display.display();
-    digitalWrite(RED_LED, HIGH);
+  WiFi.begin(ssid, password); //Connect to the Wifi
+  while (WiFi.status() != WL_CONNECTED) { //Waiting for WiFi to connect
+    delay(1000); //Wait 1 seconds
+    wifiConnecting(); //Script when WiFi is connecting. Show text in Serial and on the OLED
+    ledRED(); //Set the LED to RED
   }
-  digitalWrite(RED_LED, LOW);
-  digitalWrite(GREEN_LED, HIGH);
-  Serial.println("Connected to WiFi");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setCursor(0, 0);
-  display.println("Connected to WiFi");
-  display.println();
-  display.setTextSize(1);
-  display.print("IP: ");
-  display.println(WiFi.localIP());
-  display.display();
-  delay(8000);
+  ledGREEN(); //Set the LED to GREEN
+  wifiConnected(); //Script when WiFi is connected. Show text in Serial and on the OLED
+  delay(8000); //Wait 8 seconds
 
-  digitalWrite(GREEN_LED, LOW);
-  digitalWrite(BLUE_LED, HIGH);
-  digitalWrite(RED_LED, LOW);
-
+  //Start the Web Server
   defineHTMLRoutes(); //Fonction to call Routes to HTML Page bellow
   server.begin();  //Start the WEB Server
+  ledBLUE(); //Set the LED to BLUE
+  displayPrintTextLargeFull("Check Serial Monitor"); //Print text on OLED
+
+  //Ask for the function mode
+  Serial.println("Please input the desired function. Here are the available options : "); //Ask Question
+  Serial.println("sin, cos, tan, abs, exp, quad, affine"); //List available options
+  while(!Serial.available); //Wait for user input
+  functionMode = Serial.parseChar(); //Convert the Serial input to char in functionMode
+  switch(functionMode){ //Use this variable to determine the user choice
+    case 'sin': //the input was 'sin'
+      Serial.println("You have selected the Sinus function! For this program we use the canonical form : f(x) = a*sin(b(x-h)) + k"); //Confirm user choice
+      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+      while(!Serial.available); //Wait for user input
+      a = Serial.parseFloat(); //Convert the Serial input to float in a
+      Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
+      while(!Serial.available); //Wait for user input
+      b = Serial.parseFloat(); //Convert the Serial input to float in b
+      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+      while(!Serial.available); //Wait for user input
+      h = Serial.parseFloat(); //Convert the Serial input to float in h
+      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+      while(!Serial.available); //Wait for user input
+      k = Serial.parseFloat(); //Convert the Serial input to float in k
+      Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+      break; //Stop the switch statement
+    case 'cos': //the input was 'cos'
+      Serial.println("You have selected the Cosinus function! For this program we use the canonical form : f(x) = a*cos(b(x-h)) + k"); //Confirm user choice
+      break; //Stop the switch statement
+    case 'tan': //the input was 'tan'
+      Serial.println("You have selected the Tangent function! For this program we use the canonical form : f(x) = a*tan(b(x-h)) + k"); //Confirm user choice
+      break; //Stop the switch statement
+    case 'abs': //the input was 'abs'
+      Serial.println("You have selected the Absolute function! For this program we use the canonical form : f(x) = a*abs(x-h) + k"); //Confirm user choice
+      break; //Stop the switch statement
+    case 'exp': //the input was 'exp'
+      Serial.println("You have selected the Exponential function! For this program we use the canonical form : f(x) = a*exp(b(x-h)) + k"); //Confirm user choice
+      break; //Stop the switch statement
+    case 'quad': //the input was 'quadratic'
+      Serial.println("You have selected the Quadratic function! For this program we use the canonical form : f(x) = a*((x-h)*exp(2)) + k"); //Confirm user choice
+      break; //Stop the switch statement
+    case 'affine': //the input was 'affine'
+      Serial.println("You have selected the Affine function! For this program we use the base form : f(x) = a*x + b"); //Confirm user choice
+      break; //Stop the switch statement
+    default: //the input was invalid, the user typed something not in the options
+      Serial.println("\"" + String(functionMode) + "\" is an invalid mode! Program Stopped."); //Tell the user the error
+      displayClear(); //Clear the display
+      displayShow(); //Show the modification on the display
+      while(true); //Make an infinite loop to 'stop' the program
+  }
+  delay(5000); //Wait 5 seconds
 }
 
 void loop() {
@@ -99,6 +136,110 @@ void loop() {
   delay(1000);
 }
 
+// ############################### //
+// ### OTHERS FUNCTIONS BELLOW ### //
+// ############################### //
+
+//Clear the display
+void displayClear(){
+  display.clearDisplay();
+}
+
+//Show the modification on the display
+void displayShow(){
+  display.display();
+}
+
+//Set the Cursor placement on the display
+void displayCursor(int x, int y){
+  display.setCursor(x,y);
+}
+
+//Set the display color
+void displayColor(char color){
+  display.setTextColor(color);
+}
+
+//Print the input text in large 
+void displayPrintTextLarge(String text){
+  display.setTextSize(2);
+  display.println(text);
+}
+
+//Print the input text in small
+void displayPrintTextSmall(String text){
+  display.setTextSize(1);
+  display.println(text);
+}
+
+//Print the input text in large with clear and show
+void displayPrintTextLargeFull(String text){
+  displayClear();
+  displayCursor(0, 0);
+  displayPrintTextLarge(text);
+  displayShow();
+}
+
+//Print the input text in small with clear and show
+void displayPrintTextSmallFull(String text){
+  displayClear();
+  displayCursor(0, 0);
+  displayPrintTextSmall(text);
+  displayShow();
+}
+
+//Set RED led on and others off
+void ledRED(){
+  digitalWrite(GREEN_LED, LOW);
+  digitalWrite(BLUE_LED, LOW);
+  digitalWrite(RED_LED, HIGH);
+}
+
+//Set BLUE led on and others off
+void ledBLUE(){
+  digitalWrite(GREEN_LED, LOW);
+  digitalWrite(BLUE_LED, HIGH);
+  digitalWrite(RED_LED, LOW);
+}
+
+//Set GREEN led on and others off
+void ledGREEN(){
+  digitalWrite(GREEN_LED, HIGH);
+  digitalWrite(BLUE_LED, LOW);
+  digitalWrite(RED_LED, LOW);
+}
+
+//DO NOT REUSE
+void wifiConnected(){
+  Serial.println("Connected to WiFi");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(0, 0);
+  display.println("Connected to WiFi");
+  display.println();
+  display.setTextSize(1);
+  display.print("IP: ");
+  display.println(WiFi.localIP());
+  display.display();
+}
+
+//DO NOT REUSE
+void wifiConnecting(){
+  Serial.println("Connecting to WiFi..."); 
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(2);
+  display.println("Connectingto WiFi...");
+  display.setTextSize(1);
+  display.println();
+  display.print("SSID : ");
+  display.println(ssid);
+  display.display();
+}
+
+//DO NOT REUSE
 void defineHTMLRoutes() {
   // Define a route to serve the HTML page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
