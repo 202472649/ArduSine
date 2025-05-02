@@ -5,9 +5,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-//nigger
-//ok
-
 // ############################################################ //
 // ### J'UTILISE UN ESP8266, DONC LES PINS SONT DIFFÉRENTES ### //
 // ############################################################ //
