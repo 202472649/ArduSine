@@ -34,10 +34,13 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); //Defi
 #define rightButton 1 //Pin TX
 
 //Define the function mode here
-char functionMode = "sin" //Options : sin, cos, tan, abs, log, exp, aff, quad, para
+String functionMode = "sin"; //Options : sin, cos, tan, abs, log, exp, aff, quad, para
 
 //Define the parameters for all functions
 float a, b, h, k = 0;
+
+//Define the variable to store the function
+String functionFinal = "y=x*2";
 
 AsyncWebServer server(80); //Configure web server on port 80 (HTTP)
 
@@ -78,113 +81,105 @@ void setup() {
   Serial.println("Please input the desired function. Here are the available options : "); //Ask Question
   Serial.println("sin, cos, tan, abs, exp, quad, affine"); //List available options
   while(!Serial.available); //Wait for user input
-  functionMode = Serial.parseChar(); //Convert the Serial input to char in functionMode
-  switch(functionMode){ //Use this variable to determine the user choice
-    case 'sin': //the input was 'sin'
-      Serial.println("You have selected the Sinus function! For this program we use the canonical form : f(x) = a*sin(b(x-h)) + k"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      b = Serial.parseFloat(); //Convert the Serial input to float in b
-      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      h = Serial.parseFloat(); //Convert the Serial input to float in h
-      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      k = Serial.parseFloat(); //Convert the Serial input to float in k
-      Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
-      break; //Stop the switch statement
-    case 'cos': //the input was 'cos'
-      Serial.println("You have selected the Cosinus function! For this program we use the canonical form : f(x) = a*cos(b(x-h)) + k"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      b = Serial.parseFloat(); //Convert the Serial input to float in b
-      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      h = Serial.parseFloat(); //Convert the Serial input to float in h
-      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      k = Serial.parseFloat(); //Convert the Serial input to float in k
-      Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
-      break; //Stop the switch statement
-    case 'tan': //the input was 'tan'
-      Serial.println("You have selected the Tangent function! For this program we use the canonical form : f(x) = a*tan(b(x-h)) + k"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      b = Serial.parseFloat(); //Convert the Serial input to float in b
-      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      h = Serial.parseFloat(); //Convert the Serial input to float in h
-      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      k = Serial.parseFloat(); //Convert the Serial input to float in k
-      Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
-      break; //Stop the switch statement
-    case 'abs': //the input was 'abs'
-      Serial.println("You have selected the Absolute function! For this program we use the canonical form : f(x) = a*abs(x-h) + k"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      h = Serial.parseFloat(); //Convert the Serial input to float in h
-      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      k = Serial.parseFloat(); //Convert the Serial input to float in k
-      Serial.println("Here is your selection : a = " + String(a) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
-      break; //Stop the switch statement
-    case 'exp': //the input was 'exp'
-      Serial.println("You have selected the Exponential function! For this program we use the canonical form : f(x) = a*exp(b(x-h)) + k"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      b = Serial.parseFloat(); //Convert the Serial input to float in b
-      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      h = Serial.parseFloat(); //Convert the Serial input to float in h
-      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      k = Serial.parseFloat(); //Convert the Serial input to float in k
-      Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
-      break; //Stop the switch statement
-    case 'quad': //the input was 'quadratic'
-      Serial.println("You have selected the Quadratic function! For this program we use the canonical form : f(x) = a*((x-h)*exp(2)) + k"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      h = Serial.parseFloat(); //Convert the Serial input to float in h
-      Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      k = Serial.parseFloat(); //Convert the Serial input to float in k
-      Serial.println("Here is your selection : a = " + String(a) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
-      break; //Stop the switch statement
-    case 'affine': //the input was 'affine'
-      Serial.println("You have selected the Affine function! For this program we use the base form : f(x) = a*x + b"); //Confirm user choice
-      Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      a = Serial.parseFloat(); //Convert the Serial input to float in a
-      Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
-      while(!Serial.available); //Wait for user input
-      b = Serial.parseFloat(); //Convert the Serial input to float in b
-      Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b)); //Confirm user choice
-      break; //Stop the switch statement
-    default: //the input was invalid, the user typed something not in the options
-      Serial.println("\"" + String(functionMode) + "\" is an invalid mode! Program Stopped."); //Tell the user the error
-      displayClear(); //Clear the display
-      displayShow(); //Show the modification on the display
-      while(true); //Make an infinite loop to 'stop' the program
+  functionMode = Serial.readString(); //Convert the Serial input to char in functionMode
+  if(functionMode == "sin"){ //the input was 'sin'
+    Serial.println("You have selected the Sinus function! For this program we use the canonical form : f(x) = a*sin(b(x-h)) + k"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    b = Serial.parseFloat(); //Convert the Serial input to float in b
+    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    h = Serial.parseFloat(); //Convert the Serial input to float in h
+    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    k = Serial.parseFloat(); //Convert the Serial input to float in k
+    Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+  } else if(functionMode == "cos"){ //the input was 'cos'
+    Serial.println("You have selected the Cosinus function! For this program we use the canonical form : f(x) = a*cos(b(x-h)) + k"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    b = Serial.parseFloat(); //Convert the Serial input to float in b
+    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    h = Serial.parseFloat(); //Convert the Serial input to float in h
+    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    k = Serial.parseFloat(); //Convert the Serial input to float in k
+    Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+  } else if(functionMode == "tan"){ //the input was 'tan'
+    Serial.println("You have selected the Tangent function! For this program we use the canonical form : f(x) = a*tan(b(x-h)) + k"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    b = Serial.parseFloat(); //Convert the Serial input to float in b
+    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    h = Serial.parseFloat(); //Convert the Serial input to float in h
+    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    k = Serial.parseFloat(); //Convert the Serial input to float in k
+    Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+  } else if(functionMode == "abs"){ //the input was 'abs'
+    Serial.println("You have selected the Absolute function! For this program we use the canonical form : f(x) = a*abs(x-h) + k"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    h = Serial.parseFloat(); //Convert the Serial input to float in h
+    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    k = Serial.parseFloat(); //Convert the Serial input to float in k
+    Serial.println("Here is your selection : a = " + String(a) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+  } else if(functionMode == "exp"){ //the input was 'exp'
+    Serial.println("You have selected the Exponential function! For this program we use the canonical form : f(x) = a*exp(b(x-h)) + k"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    b = Serial.parseFloat(); //Convert the Serial input to float in b
+    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    h = Serial.parseFloat(); //Convert the Serial input to float in h
+    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    k = Serial.parseFloat(); //Convert the Serial input to float in k
+    Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+  } else if(functionMode == "quad"){ //the input was 'quad'
+    Serial.println("You have selected the Quadratic function! For this program we use the canonical form : f(x) = a*((x-h)*exp(2)) + k"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    h = Serial.parseFloat(); //Convert the Serial input to float in h
+    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    k = Serial.parseFloat(); //Convert the Serial input to float in k
+    Serial.println("Here is your selection : a = " + String(a) + ", h = " + String(h) + ", k = " + String(k)); //Confirm user choice
+  } else if(functionMode == "affine"){ //the input was 'affine'
+    Serial.println("You have selected the Affine function! For this program we use the base form : f(x) = a*x + b"); //Confirm user choice
+    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    a = Serial.parseFloat(); //Convert the Serial input to float in a
+    Serial.println("What is 'b'? (ex.: 6.37)"); //Ask user for is choice
+    while(!Serial.available); //Wait for user input
+    b = Serial.parseFloat(); //Convert the Serial input to float in b
+    Serial.println("Here is your selection : a = " + String(a) + ", b = " + String(b)); //Confirm user choice
+  } else { //the input was invalid, the user typed something not in the options
+    Serial.println("\"" + String(functionMode) + "\" is an invalid mode! Program Stopped."); //Tell the user the error
+    displayClear(); //Clear the display
+    displayShow(); //Show the modification on the display
+    while(true); //Make an infinite loop to 'stop' the program
   }
   delay(5000); //Wait 5 seconds
 }
@@ -439,7 +434,7 @@ void defineHTMLRoutes() {
           window.onload = function(){\
             const graph = document.getElementById('graph');\
             graph.innerHTML = \'\';\
-            const expr = math.parse(\"y= " + (String)amplitude + "*sin(" + (String)largeur + "*(x-" + (String)offsetX + ")) + " + (String)offsetY + "\").compile();\
+            const expr = math.parse(\"" + functionFinal + "\").compile();\
             const xValues = math.range(-10, 10, 0.1)._data;\
             const yValues = xValues.map(x => expr.evaluate({ x }));\
             const trace = {x: xValues,y: yValues,type: \'scatter',mode: \'lines\',};\
