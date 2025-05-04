@@ -9,6 +9,7 @@
 // ### J'UTILISE UN ESP8266, DONC LES PINS SONT DIFFÉRENTES ### //
 // ############################################################ //
 
+// THESE TWO NEEDS TO BE CHANGED ACCORDING TO YOURS 
 const char* ssid = "NOAHLAPTOP";      //WIFI NAME
 const char* password = "61!3Vf05B3";  //WIFI PASSWORD
 
