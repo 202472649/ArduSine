@@ -77,7 +77,7 @@ void setup() {
 
   chooseFunction(); //Call the chooseFunction function
 
-  Serial.println("You can now choose the range for the potentiometer. The potentiometer will change your variables.");
+  //Serial.println("You can now choose the range for the potentiometer. The potentiometer will change your variables.");
 }
 
 void chooseFunction(){
