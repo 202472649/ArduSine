@@ -90,7 +90,6 @@ void setup() {
   //Call the different part of setup in independants functions
   chooseFunction(); //Call the chooseFunction function
   chooseIncrementation(); //Call the chooseIncrementation function
-
 }
 
 // ################# //
@@ -102,6 +101,7 @@ void loop() {
     displayPrintTextFull(true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
   }
+  /*
   mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
   if(digitalRead(rightButton)){ //The right button was pressed
     while(digitalRead(rightButton)); //Wait until button is released (Prevent action to run multiple time on same press)
@@ -139,6 +139,7 @@ void loop() {
     }
     Serial.println("Added " + mappedIncrementationValue + " to " + selectedParameter + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
+  */
 }
 
 // ####################### //
