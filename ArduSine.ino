@@ -285,8 +285,12 @@ void chooseIncrementation(){
   Serial.println("What is the incrementation range? (no decimal)");
   while(!Serial.available()); //Wait for user input
   incrementationRange = Serial.parseInt(); //Convert the Serial input to int in incrementationRange
-  if ((incrementationRange > 100) )
-  Serial.println("Your incrementation range is " + incrementationRange + ". If this is incorrect, type \"NO\" to try again or type anything else to continue the program.");
+  if ((incrementationRange > 100)&&(incrementationRange < 0)){
+    Serial.println(String(incrementationRange) + " is an incorrect value. Make sure your ");
+    return; //call chooseIncrementation() again
+  }
+  }
+  Serial.println("Your incrementation range is " + String(incrementationRange) + ". If this is incorrect, type \"NO\" to try again or type anything else to continue the program.");
   while(!Serial.available()); //Wait for user input
   if(Serial.readString() == "NO"){ //If the user input is 'NO'
     return; //call chooseIncrementation() again
@@ -323,7 +327,7 @@ void displayPrintTextFull(bool clear, bool show, int size, String text){
   if(clear)displayClear();
   displayCursor(0, 0);
   displayPrintText(size, text);
-  displayShow();
+  if(show)displayShow();
 }
 
 //Set RED led on and others off
