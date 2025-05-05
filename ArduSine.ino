@@ -99,6 +99,7 @@ void loop() {
     ledRED(); //Set the LED to RED
   }
   mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
+  if(digitalRead(leftButton))a = a + mappedIncrementationValue;
 }
 
 // ####################### //
