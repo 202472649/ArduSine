@@ -42,6 +42,7 @@ float a, b, h, k = 0;
 
 //Incrementation range for the potentiometer
 int incrementationRange = 0;
+int mappedPotentiometerValue = 0;
 
 //Define the variable to store the function
 String functionFinal = "y=0";
@@ -97,6 +98,7 @@ void loop() {
     displayPrintTextFull(true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
   }
+  mappedPotentiometerValue = map(analogRead(selectorPin), 0, 1023, )
 }
 
 // ####################### //
@@ -279,10 +281,11 @@ void chooseFunction(){
 
 void chooseIncrementation(){
   Serial.println("You now have to choose the incrementation range for the potentiometer. The potentiometer will be use to adjust the variables.");
-  Serial.println("You need to specify a value between -100 and 100. For example, if a = -25 and incrementation = 50 then the adjustement is from -25 (LOWEST) to 25 (HIGHEST).");
+  Serial.println("You need to specify a value between 0 and 100. For example, if a = -25 and incrementation = 50 then the adjustement is from -25 (LOWEST) to 25 (HIGHEST).");
   Serial.println("What is the incrementation range? (no decimal)");
   while(!Serial.available()); //Wait for user input
   incrementationRange = Serial.parseInt(); //Convert the Serial input to int in incrementationRange
+  if ((incrementationRange > 100) )
   Serial.println("Your incrementation range is " + incrementationRange + ". If this is incorrect, type \"NO\" to try again or type anything else to continue the program.");
   while(!Serial.available()); //Wait for user input
   if(Serial.readString() == "NO"){ //If the user input is 'NO'
@@ -362,13 +365,14 @@ void wifiConnecting(){
   displayPrintTextFull(false, true, 1, "SSID: " + String(ssid));
 }
 
-// ###################################################################################################################################### //
-// ###################################################################################################################################### //
-// #################                                           !!! WARNING !!!                                          ################# //
-// #################   THE REST OF THE CODE ARE FUNCTIONS TO SEND HTML TO BROWSER, HTML IS NOT ARDUINO LANGUAGE (C++)   ################# //
-// #################     ALL THE HTML SYNTAX NEEDS TO BE INSIDE A MAIN " " AND ALL END OF LINES NEEDS A BACKSLASH \     ################# //
-// ###################################################################################################################################### //
-// ###################################################################################################################################### //
+// ######################################################################################################################################### //
+// ######################################################################################################################################### //
+// #################                                            !!! WARNING !!!                                            ################# //
+// #################    THE REST OF THE CODE ARE FUNCTIONS TO SEND HTML TO BROWSER, HTML IS NOT ARDUINO LANGUAGE (C++)     ################# //
+// #################      ALL THE HTML SYNTAX NEEDS TO BE INSIDE A MAIN " " AND ALL END OF LINES NEEDS A BACKSLASH \       ################# //
+// #################   ADD A BACKSLASH \ IN FRONT OF SYNTAX CHARACTERS TO CANCEL THE EFFECT (EX.: \"HELLO\" --> "HELLO")   ################# //
+// ######################################################################################################################################### //
+// ######################################################################################################################################### //
 
 //DO NOT REUSE MORE THEN ONCE IN THE CODE
 void defineHTMLRoutes() {
