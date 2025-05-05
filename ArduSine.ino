@@ -286,9 +286,8 @@ void chooseIncrementation(){
   while(!Serial.available()); //Wait for user input
   incrementationRange = Serial.parseInt(); //Convert the Serial input to int in incrementationRange
   if ((incrementationRange > 100)&&(incrementationRange < 0)){
-    Serial.println(String(incrementationRange) + " is an incorrect value. Make sure your ");
+    Serial.println(String(incrementationRange) + " is an incorrect value. Trying again.");
     return; //call chooseIncrementation() again
-  }
   }
   Serial.println("Your incrementation range is " + String(incrementationRange) + ". If this is incorrect, type \"NO\" to try again or type anything else to continue the program.");
   while(!Serial.available()); //Wait for user input
