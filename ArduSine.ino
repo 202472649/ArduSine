@@ -98,7 +98,7 @@ void loop() {
     displayPrintTextFull(true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
   }
-  mappedPotentiometerValue = map(analogRead(selectorPin), 0, 1023, )
+  mappedPotentiometerValue = map(analogRead(selectorPin), 0, 1023, );
 }
 
 // ####################### //
