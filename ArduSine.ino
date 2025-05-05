@@ -39,6 +39,7 @@ String functionMode = "sin"; //Options : sin, cos, tan, abs, log, exp, aff, quad
 
 //Define the parameters for all functions
 float a, b, h, k = 0;
+char selectedParameter = "a";
 
 //Incrementation range for the potentiometer
 int incrementationRange = 0;
@@ -58,6 +59,8 @@ void setup() {
   pinMode(GREEN_LED, OUTPUT); //Define LED as OUTPUT
   pinMode(BLUE_LED, OUTPUT); //Define LED as OUTPUT
   pinMode(RED_LED, OUTPUT); //Define LED as OUTPUT
+  pinMode(leftButton, INPUT_PULLUP); //Define BUTTON as INPUT with internal resistor
+  pinMode(rightButton, INPUT_PULLUP); //Define BUTTON as INPUT with internal resistor
 
   //Warn in the Serial if the OLED Display failed to start
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) { //If the display not initialized
@@ -87,6 +90,7 @@ void setup() {
   //Call the different part of setup in independants functions
   chooseFunction(); //Call the chooseFunction function
   chooseIncrementation(); //Call the chooseIncrementation function
+
 }
 
 // ################# //
@@ -99,7 +103,38 @@ void loop() {
     ledRED(); //Set the LED to RED
   }
   mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
-  if(digitalRead(leftButton))a = a + mappedIncrementationValue;
+  if(digitalRead(rightButton)){
+    switch(selectedParameter){
+      case 'a':
+        selectedParameter = b; //Change the parameter a to the next one (b)
+        break; //Stop the switch statement
+      case 'b':
+        selectedParameter = h; //Change the parameter b to the next one (h)
+        break; //Stop the switch statement
+      case 'h':
+        selectedParameter = k; //Change the parameter h to the next one (k)
+        break; //Stop the switch statement
+      case 'k':
+        selectedParameter = a; //Change the parameter k to the next one (a)
+        break; //Stop the switch statement
+    }
+  }
+  if(digitalRead(leftButton)){
+    switch(selectedParameter){
+      case 'a':
+        a = a + mappedIncrementationValue; //Adds the mappedIncrementationValue to a
+        break; //Stop the switch statement
+      case 'b':
+        b = b + mappedIncrementationValue; //Adds the mappedIncrementationValue to b
+        break; //Stop the switch statement
+      case 'h':
+        h = h + mappedIncrementationValue; //Adds the mappedIncrementationValue to h
+        break; //Stop the switch statement
+      case 'k':
+        k = k + mappedIncrementationValue; //Adds the mappedIncrementationValue to k
+        break; //Stop the switch statement
+    }
+  }
 }
 
 // ####################### //
