@@ -42,7 +42,7 @@ float a, b, h, k = 0;
 
 //Incrementation range for the potentiometer
 int incrementationRange = 0;
-int mappedPotentiometerValue = 0;
+int mappedIncrementationValue = 0;
 
 //Define the variable to store the function
 String functionFinal = "y=0";
@@ -98,7 +98,7 @@ void loop() {
     displayPrintTextFull(true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
   }
-  mappedPotentiometerValue = map(analogRead(selectorPin), 0, 1023, );
+  mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
 }
 
 // ####################### //
