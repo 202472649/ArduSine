@@ -103,37 +103,41 @@ void loop() {
     ledRED(); //Set the LED to RED
   }
   mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
-  if(digitalRead(rightButton)){
-    switch(selectedParameter){
-      case 'a':
+  if(digitalRead(rightButton)){ //The right button was pressed
+    while(digitalRead(rightButton)); //Wait until button is released (Prevent action to run multiple time on same press)
+    switch(selectedParameter){ //Look for the current selected parameter
+      case 'a': //The current parameter is a
         selectedParameter = b; //Change the parameter a to the next one (b)
         break; //Stop the switch statement
-      case 'b':
+      case 'b': //The current parameter is b
         selectedParameter = h; //Change the parameter b to the next one (h)
         break; //Stop the switch statement
-      case 'h':
+      case 'h': //The current parameter is h
         selectedParameter = k; //Change the parameter h to the next one (k)
         break; //Stop the switch statement
-      case 'k':
+      case 'k': //The current parameter is k
         selectedParameter = a; //Change the parameter k to the next one (a)
         break; //Stop the switch statement
     }
+    Serial.println("Now changing " + selectedParameter + "parameter."); //Tell the user which parameter is currently been changed
   }
-  if(digitalRead(leftButton)){
-    switch(selectedParameter){
-      case 'a':
+  if(digitalRead(leftButton)){ //The left button was pressed
+    while(digitalRead(leftButton)); //Wait until button is released (Prevent action to run multiple time on same press)
+    switch(selectedParameter){ //Look for the current selected parameter
+      case 'a': //The current parameter is a
         a = a + mappedIncrementationValue; //Adds the mappedIncrementationValue to a
         break; //Stop the switch statement
-      case 'b':
+      case 'b': //The current parameter is b
         b = b + mappedIncrementationValue; //Adds the mappedIncrementationValue to b
         break; //Stop the switch statement
-      case 'h':
+      case 'h': //The current parameter is h
         h = h + mappedIncrementationValue; //Adds the mappedIncrementationValue to h
         break; //Stop the switch statement
-      case 'k':
+      case 'k': //The current parameter is k
         k = k + mappedIncrementationValue; //Adds the mappedIncrementationValue to k
         break; //Stop the switch statement
     }
+    Serial.println("Added " + mappedIncrementationValue + " to " + selectedParameter + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
 }
 
