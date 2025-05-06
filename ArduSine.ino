@@ -10,6 +10,8 @@
 // ############################################################ //
 
 // THESE TWO NEEDS TO BE CHANGED ACCORDING TO YOURS 
+const char* ssid = "NOAHLAPTOP"; //WIFI NAME
+const char* password = "61!3Vf05B3"; //WIFI PASSWORD
 
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
