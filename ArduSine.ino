@@ -10,8 +10,8 @@
 // ############################################################ //
 
 // THESE TWO NEEDS TO BE CHANGED ACCORDING TO YOURS 
-const char* ssid = "NOAHLAPTOP";      //WIFI NAME
-const char* password = "61!3Vf05B3";  //WIFI PASSWORD
+const char* ssid = "NOAHLAPTOP"; //WIFI NAME
+const char* password = "61!3Vf05B3"; //WIFI PASSWORD
 
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
@@ -30,7 +30,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); //Defi
 #define BLUE_LED 14 //Pin D5
 #define RED_LED 13 //Pin D7
 
-#define selectorPin ADC0 //Pin A0 : Potentiometer
+#define selectorPin A0 //Pin A0 : Potentiometer
 #define leftButton 3 //Pin RX
 #define rightButton 1 //Pin TX
 
@@ -39,7 +39,7 @@ String functionMode = "sin"; //Options : sin, cos, tan, abs, log, exp, aff, quad
 
 //Define the parameters for all functions
 float a, b, h, k = 0;
-char selectedParameter = "a";
+char selectedParameter = 'a';
 
 //Incrementation range for the potentiometer
 int incrementationRange = 0;
@@ -71,6 +71,7 @@ void setup() {
   displayClear(); //Clear the display
   displayShow(); //Prevent error on startup. Make sure nothing is on screen
   display.setTextColor(WHITE); //Set the diplay color as WHITE
+  Serial.println("Welcome! Program started.");
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password); //Connect to the Wifi
@@ -88,9 +89,8 @@ void setup() {
   delay(8000); //Wait 8 seconds
 
   //Call the different part of setup in independants functions
-  chooseFunction(); //Call the chooseFunction function
-  chooseIncrementation(); //Call the chooseIncrementation function
-
+  //chooseFunction(); //Call the chooseFunction function
+  //chooseIncrementation(); //Call the chooseIncrementation function
 }
 
 // ################# //
@@ -98,10 +98,10 @@ void setup() {
 // ################# //
 
 void loop() {
-  if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
-    displayPrintTextFull(true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
+  /*if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
+    displayPrintTextFull(true, true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
-  }
+  }*/
   mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
   if(digitalRead(rightButton)){ //The right button was pressed
     while(digitalRead(rightButton)); //Wait until button is released (Prevent action to run multiple time on same press)
@@ -119,7 +119,7 @@ void loop() {
         selectedParameter = a; //Change the parameter k to the next one (a)
         break; //Stop the switch statement
     }
-    Serial.println("Now changing " + selectedParameter + "parameter."); //Tell the user which parameter is currently been changed
+    Serial.println("Now changing " + String(selectedParameter) + "parameter."); //Tell the user which parameter is currently been changed
   }
   if(digitalRead(leftButton)){ //The left button was pressed
     while(digitalRead(leftButton)); //Wait until button is released (Prevent action to run multiple time on same press)
@@ -137,7 +137,7 @@ void loop() {
         k = k + mappedIncrementationValue; //Adds the mappedIncrementationValue to k
         break; //Stop the switch statement
     }
-    Serial.println("Added " + mappedIncrementationValue + " to " + selectedParameter + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
+    Serial.println("Added " + String(mappedIncrementationValue) + " to " + String(selectedParameter) + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
 }
 
@@ -147,7 +147,7 @@ void loop() {
 
 void chooseFunction(){
   ledBLUE(); //Set the LED to BLUE
-  displayPrintTextFull(true, true, 2, "Check     Serial    Monitor"); //Print text on OLED (Keep the spaces to change lines)
+  displayPrintTextFull(true, true, true, 2, "Check     Serial    Monitor"); //Print text on OLED (Keep the spaces to change lines)
 
   //Ask for the function mode
   Serial.println("Please input the desired function. Here are the available options : "); //Ask Question
@@ -175,9 +175,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     k = Serial.parseFloat(); //Convert the Serial input to float in k
 
-    functionFinal = ("y = " + String(a) + "*sin(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*sin(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else if(functionMode == "cos"){ //the input was 'cos'
     Serial.println("You have selected the Cosinus function! For this program we use the canonical form : f(x) = a*cos(b(x-h)) + k"); //Confirm user choice
@@ -198,9 +198,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     k = Serial.parseFloat(); //Convert the Serial input to float in k
 
-    functionFinal = ("y = " + String(a) + "*cos(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*cos(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else if(functionMode == "tan"){ //the input was 'tan'
     Serial.println("You have selected the Tangent function! For this program we use the canonical form : f(x) = a*tan(b(x-h)) + k"); //Confirm user choice
@@ -221,9 +221,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     k = Serial.parseFloat(); //Convert the Serial input to float in k
 
-    functionFinal = ("y = " + String(a) + "*tan(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*tan(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else if(functionMode == "abs"){ //the input was 'abs'
     Serial.println("You have selected the Absolute function! For this program we use the canonical form : f(x) = a*abs(x-h) + k"); //Confirm user choice
@@ -240,9 +240,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     k = Serial.parseFloat(); //Convert the Serial input to float in k
 
-    functionFinal = ("y = " + String(a) + "*abs(x-" + String(h) + ")+" + String(k)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*abs(x-" + String(h) + ")+" + String(k)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else if(functionMode == "exp"){ //the input was 'exp'
     Serial.println("You have selected the Exponential function! For this program we use the canonical form : f(x) = a*exp(b(x-h)) + k"); //Confirm user choice
@@ -263,9 +263,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     k = Serial.parseFloat(); //Convert the Serial input to float in k
 
-    functionFinal = ("y = " + String(a) + "*exp(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*exp(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else if(functionMode == "quad"){ //the input was 'quad'
     Serial.println("You have selected the Quadratic function! For this program we use the canonical form : f(x) = a*((x-h)*exp(2)) + k"); //Confirm user choice
@@ -282,9 +282,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     k = Serial.parseFloat(); //Convert the Serial input to float in k
 
-    functionFinal = ("y = " + String(a) + "*((x-" + String(h) + ")*exp(2))+" + String(k)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*((x-" + String(h) + ")*exp(2))+" + String(k)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else if(functionMode == "affine"){ //the input was 'affine'
     Serial.println("You have selected the Affine function! For this program we use the base form : f(x) = a*x + b"); //Confirm user choice
@@ -297,9 +297,9 @@ void chooseFunction(){
     while(!Serial.available()); //Wait for user input
     b = Serial.parseFloat(); //Convert the Serial input to float in b
 
-    functionFinal = ("y = " + String(a) + "*x+" + String(b)); //Ajoute la fonction à fonctionFinal
-    Serial.println("Here is your selection : " + String(fonctionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, 1, functionFinal); //Show fonction on OLED
+    functionFinal = ("y = " + String(a) + "*x+" + String(b)); //Ajoute la fonction à functionFinal
+    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
   } else { //the input was invalid, the user typed something not in the options
     Serial.println("\"" + String(functionMode) + "\" is an invalid mode! Program Stopped."); //Tell the user the error
@@ -309,7 +309,7 @@ void chooseFunction(){
 
   }
   Serial.println("You can now refresh the browser page to see the changes."); //Tell the user to refresh the page
-  displayPrintTextFull(true, true, 2, "Please    Refresh   Browser"); //Tell the user to refresh the page (Keep the spaces to change lines)
+  displayPrintTextFull(true, true, true, 2, "Please    Refresh   Browser"); //Tell the user to refresh the page (Keep the spaces to change lines)
   delay(5000); //Wait 5 seconds
 
   Serial.println("Is the function correct? Type \"NO\" if you want to try again or type anything else to continue the program."); //Ask the user if he want to try again
@@ -362,9 +362,9 @@ void displayPrintText(int size, String text){
 }
 
 //Print the input text with choosed size with clear and show
-void displayPrintTextFull(bool clear, bool show, int size, String text){
+void displayPrintTextFull(bool clear, bool show, bool position, int size, String text){
   if(clear)displayClear();
-  displayCursor(0, 0);
+  if(position)displayCursor(0, 0);
   displayPrintText(size, text);
   if(show)displayShow();
 }
@@ -395,17 +395,20 @@ void wifiConnected(){
   Serial.println("Connected to WiFi");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-  displayPrintTextFull(true, false, 2, "Connected to WiFi");
+  displayPrintTextFull(true, false, true, 2, "Connected to WiFi");
   display.println();
-  displayPrintTextFull(false, true, 1, "IP: " + String(WiFi.localIP()));
+  display.setTextSize(1);
+  display.print("IP: "); //BOTH OF THESE CANNOT BE USED WITH displayPrintTextFull()
+  display.println(WiFi.localIP()); //BOTH OF THESE CANNOT BE USED WITH displayPrintTextFull()
+  displayShow();
 }
 
 //DO NOT REUSE MORE THEN ONCE IN THE CODE
 void wifiConnecting(){
   Serial.println("Connecting to WiFi..."); 
-  displayPrintTextFull(true, false, 2, "Connectingto WiFi..."); //(Keep the text like this to properly change lines on display)
+  displayPrintTextFull(true, false, true, 2, "Connectingto WiFi..."); //(Keep the text like this to properly change lines on display)
   display.println();
-  displayPrintTextFull(false, true, 1, "SSID: " + String(ssid));
+  displayPrintTextFull(false, true, false, 1, "SSID: " + String(ssid));
 }
 
 // ######################################################################################################################################### //
@@ -525,7 +528,7 @@ void defineHTMLRoutes() {
           background-color : #fff;\
           color:black;\
           padding:10px;\
-          margin:20px 100px 10px 100px;\
+          margin:20px 30px 10px 30px;\
           border-radius : 10px;\
           box-shadow : 0 0 10px rgba(0, 0, 0, 0.1);\
         }\
@@ -537,10 +540,16 @@ void defineHTMLRoutes() {
           <h1>Data Viewer</h1>\
           <a href=\"/\">Return to Home Page</a>\
           <div class=\"sub-container\">\
+            <p>" + (String)functionFinal + "</p>\
+            <p>Function Mode = " + (String)functionMode + "</p>\
             <p>Amplitude (a) = " + (String)a + "</p>\
             <p>Largeur (b) = " + (String)b + "</p>\
             <p>Offset X (h) = " + (String)h + "</p>\
             <p>Offset Y (k) = " + (String)k + "</p>\
+            <br>\
+            <p>Incrementation Range = " + (String)incrementationRange + "</p>\
+            <p>Currently Edited Parameter = " + (String)selectedParameter + "</p>\
+            <p>Value selected on Potentiometer = " + (String)mappedIncrementationValue + "</p>\
           </div>\
         </header>\
       </div>\
