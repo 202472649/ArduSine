@@ -31,11 +31,11 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); //Defi
 #define RED_LED 13 //Pin D7
 
 #define selectorPin A0 //Pin A0 : Potentiometer
-#define leftButton 3 //Pin RX
-#define rightButton 1 //Pin TX
+#define leftButton 0 //Pin D3
+#define rightButton 2 //Pin D4
 
 //Define the function mode here
-String functionMode = "sin"; //Options : sin, cos, tan, abs, log, exp, aff, quad, para
+String functionMode = "sin"; //Options : sin, cos, tan, abs, log, exp, aff
 
 //Define the parameters for all functions
 float a, b, h, k = 0;
@@ -43,6 +43,7 @@ char selectedParameter = 'a';
 
 //Incrementation range for the potentiometer
 int incrementationRange = 0;
+int incrementationRangeNegative = 0;
 int mappedIncrementationValue = 0;
 
 //Define the variable to store the function
@@ -56,6 +57,8 @@ AsyncWebServer server(80); //Configure web server on port 80 (HTTP)
 
 void setup() {
   Serial.begin(9600); //Initialize Serial Monitor with baud 9600
+  delay(3000); //Initial delay
+
   pinMode(GREEN_LED, OUTPUT); //Define LED as OUTPUT
   pinMode(BLUE_LED, OUTPUT); //Define LED as OUTPUT
   pinMode(RED_LED, OUTPUT); //Define LED as OUTPUT
@@ -89,8 +92,8 @@ void setup() {
   delay(8000); //Wait 8 seconds
 
   //Call the different part of setup in independants functions
-  //chooseFunction(); //Call the chooseFunction function
-  //chooseIncrementation(); //Call the chooseIncrementation function
+  chooseFunction(); //Call the chooseFunction function
+  chooseIncrementation(); //Call the chooseIncrementation function
 }
 
 // ################# //
@@ -98,19 +101,21 @@ void setup() {
 // ################# //
 
 void loop() {
-  /*if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
+  if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
     displayPrintTextFull(true, true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
-  }*/
-  mappedIncrementationValue = map(analogRead(selectorPin), 0, 1023, (-incrementationRange), incrementationRange);
+  }
+  mappedIncrementationValue = map(analogRead(selectorPin), 12, 1024, incrementationRangeNegative, incrementationRange);
   if(digitalRead(rightButton)){ //The right button was pressed
     while(digitalRead(rightButton)); //Wait until button is released (Prevent action to run multiple time on same press)
     switch(selectedParameter){ //Look for the current selected parameter
       case 'a': //The current parameter is a
         selectedParameter = b; //Change the parameter a to the next one (b)
+        if(functionMode == "abs")selectedParameter = h; //Override the b value because abs doesn't have b
         break; //Stop the switch statement
       case 'b': //The current parameter is b
         selectedParameter = h; //Change the parameter b to the next one (h)
+        if(functionMode == "affine")selectedParameter = a; //Override the h value because affine doesn't have h
         break; //Stop the switch statement
       case 'h': //The current parameter is h
         selectedParameter = k; //Change the parameter h to the next one (k)
@@ -139,6 +144,8 @@ void loop() {
     }
     Serial.println("Added " + String(mappedIncrementationValue) + " to " + String(selectedParameter) + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
+  delay(10);
+  yield(); //Prevents crashing when in loop (Only needed on some models like the ESP8266)
 }
 
 // ####################### //
@@ -151,7 +158,7 @@ void chooseFunction(){
 
   //Ask for the function mode
   Serial.println("Please input the desired function. Here are the available options : "); //Ask Question
-  Serial.println("sin, cos, tan, abs, exp, quad, affine"); //List available options
+  Serial.println("sin, cos, tan, abs, exp, affine"); //List available options
   while(!Serial.available()); //Wait for user input
   functionMode = Serial.readString(); //Convert the Serial input to char in functionMode
 
@@ -267,25 +274,6 @@ void chooseFunction(){
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
     displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
 
-  } else if(functionMode == "quad"){ //the input was 'quad'
-    Serial.println("You have selected the Quadratic function! For this program we use the canonical form : f(x) = a*((x-h)*exp(2)) + k"); //Confirm user choice
-
-    Serial.println("Lets start with the parameters. What is 'a'? (ex.: 12.56)"); //Ask user for is choice
-    while(!Serial.available()); //Wait for user input
-    a = Serial.parseFloat(); //Convert the Serial input to float in a
-
-    Serial.println("What is 'h'? (ex.: 7.90)"); //Ask user for is choice
-    while(!Serial.available()); //Wait for user input
-    h = Serial.parseFloat(); //Convert the Serial input to float in h
-
-    Serial.println("What is 'k'? (ex.: 36.89)"); //Ask user for is choice
-    while(!Serial.available()); //Wait for user input
-    k = Serial.parseFloat(); //Convert the Serial input to float in k
-
-    functionFinal = ("y = " + String(a) + "*((x-" + String(h) + ")*exp(2))+" + String(k)); //Ajoute la fonction à functionFinal
-    Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
-
   } else if(functionMode == "affine"){ //the input was 'affine'
     Serial.println("You have selected the Affine function! For this program we use the base form : f(x) = a*x + b"); //Confirm user choice
 
@@ -312,10 +300,10 @@ void chooseFunction(){
   displayPrintTextFull(true, true, true, 2, "Please    Refresh   Browser"); //Tell the user to refresh the page (Keep the spaces to change lines)
   delay(5000); //Wait 5 seconds
 
-  Serial.println("Is the function correct? Type \"NO\" if you want to try again or type anything else to continue the program."); //Ask the user if he want to try again
+  Serial.println("Is the function correct? Type \"N\" if you want to try again or type \"Y\" to continue with the program."); //Ask the user if he want to try again
   while(!Serial.available()); //Wait for user input
-  if(Serial.readString() == "NO"){ //If the user input is 'NO'
-    return; //Make chooseFunction() again
+  if(Serial.read() == 'N'){
+    chooseFunction();
   }
 }
 
@@ -325,14 +313,15 @@ void chooseIncrementation(){
   Serial.println("What is the incrementation range? (no decimal)");
   while(!Serial.available()); //Wait for user input
   incrementationRange = Serial.parseInt(); //Convert the Serial input to int in incrementationRange
+  incrementationRangeNegative = -incrementationRange;
   if ((incrementationRange > 100)&&(incrementationRange < 0)){
     Serial.println(String(incrementationRange) + " is an incorrect value. Trying again.");
     return; //call chooseIncrementation() again
   }
-  Serial.println("Your incrementation range is " + String(incrementationRange) + ". If this is incorrect, type \"NO\" to try again or type anything else to continue the program.");
+  Serial.println("Your incrementation range is " + String(incrementationRange) + ". If this is incorrect, type \"N\" to try again or type \"Y\" to continue with the program.");
   while(!Serial.available()); //Wait for user input
-  if(Serial.readString() == "NO"){ //If the user input is 'NO'
-    return; //call chooseIncrementation() again
+  if(Serial.read() == 'N'){ //If the user input is 'N'
+    chooseIncrementation(); //call chooseIncrementation() again
   }
 }
 
@@ -624,6 +613,7 @@ void defineHTMLRoutes() {
       <div class=\"container\">\
         <header>\
           <h1>Graph Plotter</h1>\
+          <h2>THIS PAGE DOES NOT REFRESH AUTOMATICALLY</h2>\
           <a href=\"/\">Return to Home Page</a>\
         </header>\
         <div class=\"main-content\">\
