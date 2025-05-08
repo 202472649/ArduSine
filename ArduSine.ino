@@ -1,3 +1,4 @@
+//Include the library needed for this code
 #include <ESP8266WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <SPI.h>
@@ -23,7 +24,7 @@ const char* password = "61!3Vf05B3"; //WIFI PASSWORD
 // On an arduino LEONARDO:   2(SDA),  3(SCL)
 // On ESP8266:              D2(SDA), D1(SCL)
 #define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C  ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define SCREEN_ADDRESS 0x3C  // See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); //Define the display
 
 #define GREEN_LED 12 //Pin D6
@@ -88,12 +89,14 @@ void setup() {
 
   //Start the Web Server
   defineHTMLRoutes(); //Fonction to call Routes to HTML Page bellow (DO NOT REUSE AGAIN)
-  server.begin();  //Start the WEB Server (DO NOT REUSE AGAIN)
+  server.begin(); //Start the WEB Server
   delay(8000); //Wait 8 seconds
 
   //Call the different part of setup in independants functions
   chooseFunction(); //Call the chooseFunction function
   chooseIncrementation(); //Call the chooseIncrementation function
+
+  Serial.println("You can now use the potentiometer to adjust the values and left button to apply to the parameter or right button to change the selected parameter"); //Tell user he now can use buttons and potentiometer
 }
 
 // ################# //
@@ -101,34 +104,29 @@ void setup() {
 // ################# //
 
 void loop() {
-  yield(); //Prevents crashing from watchdog when in loop (Only needed on some models like the ESP8266)
-  if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
-    displayPrintTextFull(true, true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
-    ledRED(); //Set the LED to RED
-  }
-  mappedIncrementationValue = map(analogRead(selectorPin), 12, 1024, incrementationRangeNegative, incrementationRange);
-  if(digitalRead(rightButton)){ //The right button was pressed
-    while(digitalRead(rightButton)); //Wait until button is released (Prevent action to run multiple time on same press)
+  mappedIncrementationValue = map(analogRead(selectorPin), 12, 1024, incrementationRangeNegative, incrementationRange); //Map readed value on potentiometer from negative incrementation to positive incrementation
+  if(!digitalRead(rightButton)){ //The right button was pressed
+    while(!digitalRead(rightButton)); //Wait until button is released (Prevent action to run multiple time on same press)
     switch(selectedParameter){ //Look for the current selected parameter
       case 'a': //The current parameter is a
-        selectedParameter = b; //Change the parameter a to the next one (b)
-        if(functionMode == "abs")selectedParameter = h; //Override the b value because abs doesn't have b
+        selectedParameter = 'b'; //Change the parameter a to the next one (b)
+        if(functionMode == "abs")selectedParameter = 'h'; //Override the b value because abs doesn't have b
         break; //Stop the switch statement
       case 'b': //The current parameter is b
-        selectedParameter = h; //Change the parameter b to the next one (h)
-        if(functionMode == "affine")selectedParameter = a; //Override the h value because affine doesn't have h
+        selectedParameter = 'h'; //Change the parameter b to the next one (h)
+        if(functionMode == "affine")selectedParameter = 'a'; //Override the h value because affine doesn't have h
         break; //Stop the switch statement
       case 'h': //The current parameter is h
-        selectedParameter = k; //Change the parameter h to the next one (k)
+        selectedParameter = 'k'; //Change the parameter h to the next one (k)
         break; //Stop the switch statement
       case 'k': //The current parameter is k
-        selectedParameter = a; //Change the parameter k to the next one (a)
+        selectedParameter = 'a'; //Change the parameter k to the next one (a)
         break; //Stop the switch statement
     }
-    Serial.println("Now changing " + String(selectedParameter) + "parameter."); //Tell the user which parameter is currently been changed
+    Serial.println("Now changing " + String(selectedParameter) + " parameter."); //Tell the user which parameter is currently been changed
   }
-  if(digitalRead(leftButton)){ //The left button was pressed
-    while(digitalRead(leftButton)); //Wait until button is released (Prevent action to run multiple time on same press)
+  if(!digitalRead(leftButton)){ //The left button was pressed
+    while(!digitalRead(leftButton)); //Wait until button is released (Prevent action to run multiple time on same press)
     switch(selectedParameter){ //Look for the current selected parameter
       case 'a': //The current parameter is a
         a = a + mappedIncrementationValue; //Adds the mappedIncrementationValue to a
@@ -142,10 +140,23 @@ void loop() {
       case 'k': //The current parameter is k
         k = k + mappedIncrementationValue; //Adds the mappedIncrementationValue to k
         break; //Stop the switch statement
-    }
+      }
     Serial.println("Added " + String(mappedIncrementationValue) + " to " + String(selectedParameter) + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
-  delay(100);
+  if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
+    displayPrintTextFull(true, true, true, 2, "WIFI NO   LONGER    AVAILABLE"); //Tell the user to refresh the page (Keep the spaces to change lines) (look at function bellow to understand displayPrintTextFull())
+    ledRED(); //Set the LED to RED
+  }
+  server.begin(); //Prevents the WEB Server of shutting down in loop
+  displayPrintTextFull(true, false, true, 1, "a = " + String(a)); //Show the parameters on OLED (look at function bellow to understand displayPrintTextFull())
+  displayPrintTextFull(false, false, false, 1, "b = " + String(b)); //Show the parameters on OLED (look at function bellow to understand displayPrintTextFull())
+  displayPrintTextFull(false, false, false, 1, "h = " + String(h)); //Show the parameters on OLED (look at function bellow to understand displayPrintTextFull())
+  displayPrintTextFull(false, false, false, 1, "k = " + String(k)); //Show the parameters on OLED (look at function bellow to understand displayPrintTextFull())
+  display.println(); //Skip line
+  displayPrintTextFull(false, false, false, 1, "selected  = " + String(mappedIncrementationValue)); //Show stuff on OLED (look at function bellow to understand displayPrintTextFull())
+  displayPrintTextFull(false, true, false, 1, "current  = " + String(selectedParameter)); //Show stuff on OLED (look at function bellow to understand displayPrintTextFull())
+  delay(10); //Add delay to make sure it's not overloaded
+  yield(); //Prevents crashing from watchdog when in loop (Needed on some models of non-arduino board)
 }
 
 // ####################### //
@@ -154,7 +165,7 @@ void loop() {
 
 void chooseFunction(){
   ledBLUE(); //Set the LED to BLUE
-  displayPrintTextFull(true, true, true, 2, "Check     Serial    Monitor"); //Print text on OLED (Keep the spaces to change lines)
+  displayPrintTextFull(true, true, true, 2, "Check     Serial    Monitor"); //Print text on OLED (Keep the spaces to change lines) (look at function bellow to understand displayPrintTextFull())
 
   //Ask for the function mode
   Serial.println("Please input the desired function. Here are the available options : "); //Ask Question
@@ -184,7 +195,7 @@ void chooseFunction(){
 
     functionFinal = ("y = " + String(a) + "*sin(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED (look at function bellow to understand displayPrintTextFull())
 
   } else if(functionMode == "cos"){ //the input was 'cos'
     Serial.println("You have selected the Cosinus function! For this program we use the canonical form : f(x) = a*cos(b(x-h)) + k"); //Confirm user choice
@@ -207,7 +218,7 @@ void chooseFunction(){
 
     functionFinal = ("y = " + String(a) + "*cos(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED (look at function bellow to understand displayPrintTextFull())
 
   } else if(functionMode == "tan"){ //the input was 'tan'
     Serial.println("You have selected the Tangent function! For this program we use the canonical form : f(x) = a*tan(b(x-h)) + k"); //Confirm user choice
@@ -230,7 +241,7 @@ void chooseFunction(){
 
     functionFinal = ("y = " + String(a) + "*tan(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED (look at function bellow to understand displayPrintTextFull())
 
   } else if(functionMode == "abs"){ //the input was 'abs'
     Serial.println("You have selected the Absolute function! For this program we use the canonical form : f(x) = a*abs(x-h) + k"); //Confirm user choice
@@ -249,7 +260,7 @@ void chooseFunction(){
 
     functionFinal = ("y = " + String(a) + "*abs(x-" + String(h) + ")+" + String(k)); //Ajoute la fonction à functionFinal
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED (look at function bellow to understand displayPrintTextFull())
 
   } else if(functionMode == "exp"){ //the input was 'exp'
     Serial.println("You have selected the Exponential function! For this program we use the canonical form : f(x) = a*exp(b(x-h)) + k"); //Confirm user choice
@@ -272,7 +283,7 @@ void chooseFunction(){
 
     functionFinal = ("y = " + String(a) + "*exp(" + String(b) + "(x-" + String(h) + "))+" + String(k)); //Ajoute la fonction à functionFinal
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED (look at function bellow to understand displayPrintTextFull())
 
   } else if(functionMode == "affine"){ //the input was 'affine'
     Serial.println("You have selected the Affine function! For this program we use the base form : f(x) = a*x + b"); //Confirm user choice
@@ -287,40 +298,39 @@ void chooseFunction(){
 
     functionFinal = ("y = " + String(a) + "*x+" + String(b)); //Ajoute la fonction à functionFinal
     Serial.println("Here is your selection : " + String(functionFinal)); //Show fonction on Serial Monitor
-    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED
+    displayPrintTextFull(true, true, true, 1, functionFinal); //Show fonction on OLED (look at function bellow to understand displayPrintTextFull())
 
   } else { //the input was invalid, the user typed something not in the options
     Serial.println("\"" + String(functionMode) + "\" is an invalid mode! Program Stopped."); //Tell the user the error
     displayClear(); //Clear the display
     displayShow(); //Show the modification on the display
     while(true); //Make an infinite loop to 'stop' the program
-
   }
   Serial.println("You can now refresh the browser page to see the changes."); //Tell the user to refresh the page
-  displayPrintTextFull(true, true, true, 2, "Please    Refresh   Browser"); //Tell the user to refresh the page (Keep the spaces to change lines)
+  displayPrintTextFull(true, true, true, 2, "Please    Refresh   Browser"); //Tell the user to refresh the page (Keep the spaces to change lines) (look at function bellow to understand displayPrintTextFull())
   delay(5000); //Wait 5 seconds
 
   Serial.println("Is the function correct? Type \"N\" if you want to try again or type \"Y\" to continue with the program."); //Ask the user if he want to try again
   while(!Serial.available()); //Wait for user input
-  if(Serial.read() == 'N'){
-    chooseFunction();
+  if(Serial.read() == 'N'){ //If the user's input was 'N'
+    chooseFunction(); //call chooseFunction() again
   }
 }
 
 void chooseIncrementation(){
-  Serial.println("You now have to choose the incrementation range for the potentiometer. The potentiometer will be use to adjust the variables.");
-  Serial.println("You need to specify a value between 0 and 100. For example, if a = -25 and incrementation = 50 then the adjustement is from -25 (LOWEST) to 25 (HIGHEST).");
-  Serial.println("What is the incrementation range? (no decimal)");
+  Serial.println("You now have to choose the incrementation range for the potentiometer. The potentiometer will be use to adjust the variables."); //Say stuff on serial monitor
+  Serial.println("You need to specify a value between 0 and 100. For example, if a = -25 and incrementation = 50 then the adjustement will be from -25 (LOWEST) to 25 (HIGHEST)."); //Say stuff on serial monitor
+  Serial.println("What is the incrementation range? (positive with no decimal)"); //Ask user for the incrementation range
   while(!Serial.available()); //Wait for user input
   incrementationRange = Serial.parseInt(); //Convert the Serial input to int in incrementationRange
-  incrementationRangeNegative = -incrementationRange;
-  if ((incrementationRange > 100)&&(incrementationRange < 0)){
-    Serial.println(String(incrementationRange) + " is an incorrect value. Trying again.");
+  incrementationRangeNegative = -incrementationRange; //Define incrementationRangeNegative with the negative of incrementationRange
+  if ((incrementationRange > 100)&&(incrementationRange < 0)){ //If the value is less than 0 or greater than 100
+    Serial.println(String(incrementationRange) + " is an incorrect value. Trying again."); //Tell the user the input was incorrect
     return; //call chooseIncrementation() again
   }
-  Serial.println("Your incrementation range is " + String(incrementationRange) + ". If this is incorrect, type \"N\" to try again or type \"Y\" to continue with the program.");
+  Serial.println("Your incrementation range is " + String(incrementationRange) + ". If this is incorrect, type \"N\" to try again or type \"Y\" to continue with the program."); //Confirm user choice
   while(!Serial.available()); //Wait for user input
-  if(Serial.read() == 'N'){ //If the user input is 'N'
+  if(Serial.read() == 'N'){ //If the user's input was 'N'
     chooseIncrementation(); //call chooseIncrementation() again
   }
 }
@@ -331,88 +341,93 @@ void chooseIncrementation(){
 
 //Clear the display
 void displayClear(){
-  display.clearDisplay();
+  display.clearDisplay(); //Clear the OLED display
 }
 
 //Show the modification on the display
 void displayShow(){
-  display.display();
+  display.display(); //Show modification on OLED
 }
 
 //Set the Cursor placement on the display
 void displayCursor(int x, int y){
-  display.setCursor(x,y);
+  display.setCursor(x,y); //Set the cursor placement on OLED
 }
 
 //Print the input text with choosed size
 void displayPrintText(int size, String text){
-  display.setTextSize(size); //1 or 2
-  display.println(text);
+  display.setTextSize(size); //Set the text size on OLED (1 or 2)
+  display.println(text); //Print text on OLED with line break at the end
 }
 
 //Print the input text with choosed size with clear and show
 void displayPrintTextFull(bool clear, bool show, bool position, int size, String text){
-  if(clear)displayClear();
-  if(position)displayCursor(0, 0);
-  displayPrintText(size, text);
-  if(show)displayShow();
+  if(clear)displayClear(); //If clear is true = Clear the OLED display
+  if(position)displayCursor(0, 0); //If position is true = Set the cursor placement on OLED
+  displayPrintText(size, text); //Use the previous function
+  if(show)displayShow(); //If show is true = Show modification on OLED
 }
 
 //Set RED led on and others off
 void ledRED(){
-  digitalWrite(GREEN_LED, LOW);
-  digitalWrite(BLUE_LED, LOW);
-  digitalWrite(RED_LED, HIGH);
+  digitalWrite(GREEN_LED, LOW); //Green LED is off
+  digitalWrite(BLUE_LED, LOW); //Blue LED is off
+  digitalWrite(RED_LED, HIGH); //Red LED is on
 }
 
 //Set BLUE led on and others off
 void ledBLUE(){
-  digitalWrite(GREEN_LED, LOW);
-  digitalWrite(BLUE_LED, HIGH);
-  digitalWrite(RED_LED, LOW);
+  digitalWrite(GREEN_LED, LOW); //Green LED is off
+  digitalWrite(BLUE_LED, HIGH); //Blue LED is on
+  digitalWrite(RED_LED, LOW); //Red LED is off
 }
 
 //Set GREEN led on and others off
 void ledGREEN(){
-  digitalWrite(GREEN_LED, HIGH);
-  digitalWrite(BLUE_LED, LOW);
-  digitalWrite(RED_LED, LOW);
+  digitalWrite(GREEN_LED, HIGH); //Green LED is on
+  digitalWrite(BLUE_LED, LOW); //Blue LED is off
+  digitalWrite(RED_LED, LOW); //Red LED is off
 }
 
-//DO NOT REUSE MORE THEN ONCE IN THE CODE
+//Function to show that the WIFI was connected and the IP on Serial monitor and OLED
+// !! ONLY USE AT STARTUP ONCE !! //
 void wifiConnected(){
-  Serial.println("Connected to WiFi");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  displayPrintTextFull(true, false, true, 2, "Connected to WiFi");
-  display.println();
-  display.setTextSize(1);
-  display.print("IP: "); //BOTH OF THESE CANNOT BE USED WITH displayPrintTextFull()
-  display.println(WiFi.localIP()); //BOTH OF THESE CANNOT BE USED WITH displayPrintTextFull()
-  displayShow();
+  Serial.println("Connected to WiFi"); //Tell the user it's connected
+  Serial.print("IP address: "); //Tell the IP label
+  Serial.println(WiFi.localIP()); //Tell the IP value
+  displayPrintTextFull(true, false, true, 2, "Connected to WiFi"); //Tell the user it's connected
+  display.println(); //Skip a line
+  display.setTextSize(1); //Set text size as 1
+  display.print("IP: "); //Tell the IP label
+  display.println(WiFi.localIP()); //Tell the IP value    **WIFI.localIP cannot be converted to String so needs to be in it's own thing**
+  displayShow(); //Show the modification on OLED
 }
 
-//DO NOT REUSE MORE THEN ONCE IN THE CODE
+//Function to show that the WIFI is connecting with the SSID on Serial monitor and OLED
+// !! ONLY USE AT STARTUP ONCE !! //
 void wifiConnecting(){
-  Serial.println("Connecting to WiFi..."); 
-  displayPrintTextFull(true, false, true, 2, "Connectingto WiFi..."); //(Keep the text like this to properly change lines on display)
-  display.println();
-  displayPrintTextFull(false, true, false, 1, "SSID: " + String(ssid));
+  Serial.println("Connecting to WiFi..."); //Tell the user it's connecting
+  displayPrintTextFull(true, false, true, 2, "Connectingto WiFi..."); //Tell the user it's connecting     **(Keep the text like this to properly change lines on display)**
+  display.println(); //Skip a line
+  displayPrintTextFull(false, true, false, 1, "SSID: " + String(ssid)); //Tell the user the WIFI SSID it's searching for
 }
 
 // ######################################################################################################################################### //
 // ######################################################################################################################################### //
 // #################                                            !!! WARNING !!!                                            ################# //
-// #################    THE REST OF THE CODE ARE FUNCTIONS TO SEND HTML TO BROWSER, HTML IS NOT ARDUINO LANGUAGE (C++)     ################# //
+// #################       THE REST OF THE CODE IS TO SEND HTML TO THE BROWSER, HTML IS NOT ARDUINO LANGUAGE (C++)         ################# //
 // #################      ALL THE HTML SYNTAX NEEDS TO BE INSIDE A MAIN " " AND ALL END OF LINES NEEDS A BACKSLASH \       ################# //
 // #################   ADD A BACKSLASH \ IN FRONT OF SYNTAX CHARACTERS TO CANCEL THE EFFECT (EX.: \"HELLO\" --> "HELLO")   ################# //
+// #################                                            !!! WARNING !!!                                            ################# //
 // ######################################################################################################################################### //
 // ######################################################################################################################################### //
 
-//DO NOT REUSE MORE THEN ONCE IN THE CODE
+// Define a route to serve the HTML page
+// !! ONLY USE AT STARTUP ONCE !! //
 void defineHTMLRoutes() {
-  // Define a route to serve the HTML page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { //Receive the root page on the IP (Ex.: 192.168.137.69/)
+  //Receive the root page on the IP (Ex.: 192.168.137.69/)
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+    //Send the request in html to browser
     request->send(200, "text/html", "<html>\
     <head>\
       <style>\
@@ -475,7 +490,9 @@ void defineHTMLRoutes() {
     </html>");
   });
 
-  server.on("/data-viewer", HTTP_GET, [](AsyncWebServerRequest* request) { //Receive the data-viewer page on the IP (Ex.: 192.168.137.69/data-viewer)
+  //Receive the data-viewer page on the IP (Ex.: 192.168.137.69/data-viewer)
+  server.on("/data-viewer", HTTP_GET, [](AsyncWebServerRequest* request) {
+    //Send the request in html to browser
     request->send(200, "text/html", "<html>\
     <head>\
       <meta http-equiv=\"refresh\" content=\"1\">\
@@ -546,7 +563,9 @@ void defineHTMLRoutes() {
     </html>");
   });
 
-  server.on("/graph-plotter", HTTP_GET, [](AsyncWebServerRequest* request) { //Receive the graph-plotter page on the IP (Ex.: 192.168.137.69/graph-plotter)
+  //Receive the graph-plotter page on the IP (Ex.: 192.168.137.69/graph-plotter)
+  server.on("/graph-plotter", HTTP_GET, [](AsyncWebServerRequest* request) {
+    //Send the request in html to browser
     request->send(200, "text/html", "<html>\
     <head>\
       <script src=\"https://cdn.plot.ly/plotly-3.0.1.min.js\"></script>\
