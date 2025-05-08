@@ -101,6 +101,7 @@ void setup() {
 // ################# //
 
 void loop() {
+  yield(); //Prevents crashing from watchdog when in loop (Only needed on some models like the ESP8266)
   if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
     displayPrintTextFull(true, true, true, 2, "WiFi      Disconnected"); //Tell the user to refresh the page (Keep the spaces to change lines)
     ledRED(); //Set the LED to RED
@@ -144,8 +145,7 @@ void loop() {
     }
     Serial.println("Added " + String(mappedIncrementationValue) + " to " + String(selectedParameter) + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
-  delay(10);
-  yield(); //Prevents crashing when in loop (Only needed on some models like the ESP8266)
+  delay(100);
 }
 
 // ####################### //
