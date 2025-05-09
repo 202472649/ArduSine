@@ -45,7 +45,7 @@ char selectedParameter = 'a';
 //Incrementation range for the potentiometer
 int incrementationRange = 0;
 int incrementationRangeNegative = 0;
-int mappedIncrementationValue = 0;
+float mappedIncrementationValue = 0;
 
 //Define the variable to store the function
 String functionFinal = "y=0";
@@ -96,7 +96,8 @@ void setup() {
   chooseFunction(); //Call the chooseFunction function
   chooseIncrementation(); //Call the chooseIncrementation function
 
-  Serial.println("You can now use the potentiometer to adjust the values and left button to apply to the parameter or right button to change the selected parameter"); //Tell user he now can use buttons and potentiometer
+  Serial.println("You can now use the potentiometer to adjust the value to add or substract"); //Tell user he now can use buttons and potentiometer
+  Serial.println("And use left button to apply to the parameter or right button to change the selected parameter"); //Tell user he now can use buttons and potentiometer
 }
 
 // ################# //
@@ -143,7 +144,7 @@ void loop() {
       }
     Serial.println("Added " + String(mappedIncrementationValue) + " to " + String(selectedParameter) + " parameter."); //Tell the user the mappedIncrementationValue was added to the current parameter
   }
-  if(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
+  while(WiFi.status() != WL_CONNECTED) { //WiFi Disconnected
     displayPrintTextFull(true, true, true, 2, "WIFI NO   LONGER    AVAILABLE"); //Tell the user to refresh the page (Keep the spaces to change lines) (look at function bellow to understand displayPrintTextFull())
     ledRED(); //Set the LED to RED
   }
@@ -307,10 +308,10 @@ void chooseFunction(){
     while(true); //Make an infinite loop to 'stop' the program
   }
   Serial.println("You can now refresh the browser page to see the changes."); //Tell the user to refresh the page
-  displayPrintTextFull(true, true, true, 2, "Please    Refresh   Browser"); //Tell the user to refresh the page (Keep the spaces to change lines) (look at function bellow to understand displayPrintTextFull())
-  delay(5000); //Wait 5 seconds
+  delay(2500); //Wait 2,5 seconds
 
   Serial.println("Is the function correct? Type \"N\" if you want to try again or type \"Y\" to continue with the program."); //Ask the user if he want to try again
+  displayPrintTextFull(true, true, true, 2, "Check     Serial    Monitor"); //Print text on OLED (Keep the spaces to change lines) (look at function bellow to understand displayPrintTextFull())
   while(!Serial.available()); //Wait for user input
   if(Serial.read() == 'N'){ //If the user's input was 'N'
     chooseFunction(); //call chooseFunction() again
@@ -319,8 +320,7 @@ void chooseFunction(){
 
 void chooseIncrementation(){
   Serial.println("You now have to choose the incrementation range for the potentiometer. The potentiometer will be use to adjust the variables."); //Say stuff on serial monitor
-  Serial.println("You need to specify a value between 0 and 100. For example, if a = -25 and incrementation = 50 then the adjustement will be from -25 (LOWEST) to 25 (HIGHEST)."); //Say stuff on serial monitor
-  Serial.println("What is the incrementation range? (positive with no decimal)"); //Ask user for the incrementation range
+  Serial.println("What is the incrementation range? The value as to be between 0 and 100 and positive with no decimals"); //Ask user for the incrementation range
   while(!Serial.available()); //Wait for user input
   incrementationRange = Serial.parseInt(); //Convert the Serial input to int in incrementationRange
   incrementationRangeNegative = -incrementationRange; //Define incrementationRangeNegative with the negative of incrementationRange
